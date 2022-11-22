@@ -38,18 +38,33 @@ class Proyecto(object):
 	def deteccion(self,msg):
 		image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
 		image_out_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+	#	image_out_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		
 		#deteccion de color
-		lower_limit = np.array([0, 50, 50])
-		upper_limit = np.array([15, 255, 255])
+		lower_limit_1 = np.array([0, 100, 100])
+		upper_limit_1 = np.array([10,255, 255])
+		
+		lower_limit_2 = np.array([160, 100, 100])
+                upper_limit_2 = np.array([169,255, 255])
 		
 		#crear mascara
-		mask = cv2.inRange(image_out_hsv, lower_limit, upper_limit) 
+		mask1 = cv2.inRange(image_out_hsv, lower_limit_1, upper_limit_1) 
+		#mask = cv2.inRange(image_out_rgb, lower_limit, upper_limit) 
+		
+	#	kernel = np.ones((5,5),np.uint8)
+	#	mask1 = cv2.erode(mask1, kernel, iterations=1)
+	#	mask1 = cv2.dilate(mask1, kernel, iterations=1)
 
-		kernel = np.ones((5,5),np.uint8)
-		mask = cv2.erode(mask, kernel, iterations=5)
-		mask = cv2.dilate(mask, kernel, iterations=5)
-		_,contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		mask2 = cv2.inRange(image_out_hsv, lower_limit_2, upper_limit_2)
+                
+        #        kernel = np.ones((5,5),np.uint8)
+         #       mask2 = cv2.erode(mask2, kernel, iterations=1)
+          #      mask2 = cv2.dilate(mask2, kernel, iterations=1)
+
+		#mask=cv2.addWeighted(mask1,1.0,mask2,1.0,0.0)
+		mask=cv2.GaussianBlur(mask2,(9,9),2,2)
+                _,contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
 
 		image_out = cv2.bitwise_and(image, image, mask= mask)
 		
@@ -57,7 +72,7 @@ class Proyecto(object):
 
                 for cnt in contours:
 			x,y,w,h=cv2.boundingRect(cnt)
-			if w*h>400:
+			if w*h>20:
                 		cv2.rectangle(image_out, (x,y), (x+w,y+h), (0,0,255), 2)
 				Dr =( 3 * 101.859163)/ h
 				
