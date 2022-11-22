@@ -32,7 +32,11 @@ class Proyecto(object):
 		#self.subCmd = rospy.Subscriber("/duckiebot/possible_cmd",Twist2DStamped, self.joy_aux)
 		self.pubWheels = rospy.Publisher("/duckiebot/wheels_driver_node/car_cmd",Twist2DStamped,queue_size=1)
 		self.msg_control = Twist2DStamped()
-
+		
+		#Contador
+		self.count1=0
+		self.count2=0
+		self.count3=0
 #####
 
 	def deteccion(self,msg):
@@ -51,15 +55,15 @@ class Proyecto(object):
 		mask1 = cv2.inRange(image_out_hsv, lower_limit_1, upper_limit_1) 
 		#mask = cv2.inRange(image_out_rgb, lower_limit, upper_limit) 
 		
-	#	kernel = np.ones((5,5),np.uint8)
-	#	mask1 = cv2.erode(mask1, kernel, iterations=1)
-	#	mask1 = cv2.dilate(mask1, kernel, iterations=1)
+		kernel = np.ones((5,5),np.uint8)
+		mask1 = cv2.erode(mask1, kernel, iterations=1)
+		mask1 = cv2.dilate(mask1, kernel, iterations=1)
 
 		mask2 = cv2.inRange(image_out_hsv, lower_limit_2, upper_limit_2)
                 
         #        kernel = np.ones((5,5),np.uint8)
          #       mask2 = cv2.erode(mask2, kernel, iterations=1)
-          #      mask2 = cv2.dilate(mask2, kernel, iterations=1)
+           #      mask2 = cv2.dilate(mask2, kernel, iterations=1)
 
 		#mask=cv2.addWeighted(mask1,1.0,mask2,1.0,0.0)
 		mask=cv2.GaussianBlur(mask2,(9,9),2,2)
@@ -72,13 +76,14 @@ class Proyecto(object):
 
                 for cnt in contours:
 			x,y,w,h=cv2.boundingRect(cnt)
-			if w*h>20:
+			if w*h>0:
                 		cv2.rectangle(image_out, (x,y), (x+w,y+h), (0,0,255), 2)
 				Dr =( 3 * 101.859163)/ h
 				
                 		distancia.x = x
                 		distancia.y = y
                 		distancia.z = Dr
+		#		print("distancia",distancia.z)
 		
 		self.pubPosicion.publish(distancia)
 		msg_mask  = self.bridge.cv2_to_imgmsg(image_out, "bgr8")
@@ -102,13 +107,30 @@ class Proyecto(object):
                 self.pubJoy.publish(self.msg_joy)				
 
 	def detencion(self,msg):
-		if msg.z<20 and msg.z>0:
+		print("dentencion:",msg.z)
+		if msg.z==0:
+			if self.count1==1:
+				if self.count2==1:
+					if self.count3==0:
+						self.count3=1
+					else:
+						self.count3=5	
+				else:
+					self.count2=1
+			else:
+				self.count1=1
+						
+			print("counter:",(self.count1+self.count2+self.count3))
+		if (msg.z<45 and msg.z>0) or (self.count1+self.count2+self.count3)<4:
+			#print("detencion if:",msg.z)
 			self.msg_control.v = 0
 	                self.msg_control.omega = 0
 			#print("controller:",msg.z)
 		else:
 			self.msg_control= self.msg_joy
-		
+			self.count1=0
+			self.count2=0
+			self.count3=0
 		self.pubWheels.publish(self.msg_control)
 
 def main():
