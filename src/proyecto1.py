@@ -34,9 +34,7 @@ class Proyecto(object):
 		self.msg_control = Twist2DStamped()
 		
 		#Contador
-		self.count1=0
-		self.count2=0
-		self.count3=0
+		self.count=3
 #####
 
 	def deteccion(self,msg):
@@ -107,30 +105,24 @@ class Proyecto(object):
                 self.pubJoy.publish(self.msg_joy)				
 
 	def detencion(self,msg):
-		print("dentencion:",msg.z)
-		if msg.z==0:
-			if self.count1==1:
-				if self.count2==1:
-					if self.count3==0:
-						self.count3=1
-					else:
-						self.count3=5	
-				else:
-					self.count2=1
-			else:
-				self.count1=1
-						
-			print("counter:",(self.count1+self.count2+self.count3))
-		if (msg.z<45 and msg.z>0) or (self.count1+self.count2+self.count3)<4:
-			#print("detencion if:",msg.z)
+		#print("dentencion:",msg.z)
+		if (msg.z<45 and msg.z>0):
 			self.msg_control.v = 0
-	                self.msg_control.omega = 0
-			#print("controller:",msg.z)
-		else:
-			self.msg_control= self.msg_joy
-			self.count1=0
-			self.count2=0
-			self.count3=0
+                        self.msg_control.omega = 0
+			self.count=0
+			print("dentencion:",msg.z)
+		elif msg.z==0:
+			self.count=self.count+1
+			#print("counter:",self.count)				
+			if self.count>2:
+				self.msg_control = self.msg_joy
+				#print("controller:",msg.z)
+				print("counter:",self.count)   
+			else:
+				self.msg_control.v = 0
+	                        self.msg_control.omega = 0
+				print("safeward")
+		
 		self.pubWheels.publish(self.msg_control)
 
 def main():
