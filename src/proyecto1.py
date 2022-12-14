@@ -51,10 +51,10 @@ class Proyecto(object):
 		#crear mascara para detectar
 		
 		#mask1 usa los limites 1 del color rojo
-		mask1 = cv2.inRange(image_out_hsv, lower_limit_1, upper_limit_1) 
-		kernel = np.ones((5,5),np.uint8)
-		mask1 = cv2.erode(mask1, kernel, iterations=1)
-		mask1 = cv2.dilate(mask1, kernel, iterations=1)
+	#	mask1 = cv2.inRange(image_out_hsv, lower_limit_1, upper_limit_1) 
+	#	kernel = np.ones((5,5),np.uint8)
+	#	mask1 = cv2.erode(mask1, kernel, iterations=1)
+	#	mask1 = cv2.dilate(mask1, kernel, iterations=1)
 		
 		#mask2 usa los limites 2 del color rojo
 		mask2 = cv2.inRange(image_out_hsv, lower_limit_2, upper_limit_2)
@@ -117,7 +117,7 @@ class Proyecto(object):
 			self.msg_control.v = 0
                         self.msg_control.omega = 0
 			self.count=0
-			print("dentencion:",msg.z)
+			#print("dentencion:",msg.z)
 
 		elif msg.z==0 or msg.z>45:		#if no detecta o esta lejos, aumenta el contador			
 			self.count=self.count+1
