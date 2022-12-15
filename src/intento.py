@@ -37,65 +37,59 @@ class Proyecto(object):
 		self.count=3
 #####
 
-	def deteccion(self,msg): #deteccion del semaforo en rojo
+	def deteccion(self,msg):
 		image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
 		image_out_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+	#	image_out_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 		
-		#deteccion de color rojo
+		#deteccion de color
 		lower_limit_1 = np.array([0, 100, 100])
 		upper_limit_1 = np.array([10,255, 255])
 		
-		lower_limit_2 = np.array([160, 100, 100])
-                upper_limit_2 = np.array([169,255, 255])
+		lower_limit_2 = np.array([155, 170, 170])
+                upper_limit_2 = np.array([175,255, 255])
 		
-		#crear mascara para detectar
-		
-	#	mask1 usa los limites 1 del color rojo
+		#crear mascara
 		mask1 = cv2.inRange(image_out_hsv, lower_limit_1, upper_limit_1) 
+		#mask = cv2.inRange(image_out_rgb, lower_limit, upper_limit) 
+		
 		kernel = np.ones((5,5),np.uint8)
 		mask1 = cv2.erode(mask1, kernel, iterations=1)
 		mask1 = cv2.dilate(mask1, kernel, iterations=1)
-		
-		#mask2 usa los limites 2 del color rojo
-		mask2 = cv2.inRange(image_out_hsv, lower_limit_2, upper_limit_2)
-                #kernel = np.ones((5,5),np.uint8)
-                #mask2 = cv2.erode(mask2, kernel, iterations=1)
-                #mask2 = cv2.dilate(mask2, kernel, iterations=1)
 
-		#mask usando mask1 y mask2 ponderadas. para usar este metodo, descomentar lineas 54-57, 61-63 y 66, y comentar linea 69
+		mask2 = cv2.inRange(image_out_hsv, lower_limit_2, upper_limit_2)
+                
+                kernel = np.ones((5,5),np.uint8)
+                mask2 = cv2.erode(mask2, kernel, iterations=1)
+                mask2 = cv2.dilate(mask2, kernel, iterations=1)
+
 		#mask=cv2.addWeighted(mask1,1.0,mask2,1.0,0.0)
-		
-		#mask usando mask2 y un GaussianBlur
 		mask=cv2.GaussianBlur(mask2,(9,9),2,2)
-               
-		#encuentra los bordes de los objetos detectados
-		_,contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                _,contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+
+		image_out = cv2.bitwise_and(image, image, mask= mask)
 		
-		#aplica la mascara a la imagen
-		image_out = cv2.bitwise_and(image, image, mask = mask)
-		
-		#distancia entre el Duckiebot y el objeto detectado
 		distancia = Point()
 
                 for cnt in contours:
 			x,y,w,h=cv2.boundingRect(cnt)
 			if w*h>0:
-                		cv2.rectangle(image_out, (x,y), (x+w,y+h), (0,0,255), 2) #dibuja un rectangulo alrededor de cada objeto detectado
+                		cv2.rectangle(image_out, (x,y), (x+w,y+h), (0,0,255), 2)
 				Dr =( 3 * 101.859163)/ h
 				
                 		distancia.x = x
                 		distancia.y = y
                 		distancia.z = Dr
-	
-		#publica la distancia
+		#		print("distancia",distancia.z)
+		
 		self.pubPosicion.publish(distancia)
 		msg_mask  = self.bridge.cv2_to_imgmsg(image_out, "bgr8")
-		
-		#publica la mascara  	
+		  	
 		self.pubMask.publish(msg_mask)
 		
-	def joystick(self,msg):	#controla el Duckiebot con el joystick
-		B=(msg.buttons)[1]	#freno de emergencia presionando el boton B del joystick
+	def joystick(self,msg):
+		B=(msg.buttons)[1]
 		if B==1:
 			x = 0
 			y = 0
@@ -106,32 +100,30 @@ class Proyecto(object):
 			x=10*eje0
 			y=eje1
 
-		#asigna velocidad lineal y angular
 		self.msg_joy.v = y
                 self.msg_joy.omega = -x
-		#publica velocidad que indica el joystick (o freno de emergencia)
                 self.pubJoy.publish(self.msg_joy)				
 
-	def detencion(self,msg): #detencion automatica al detectar semaforo en rojo
-		if (msg.z<45 and msg.z>0):		#if detecta semaforo en rojo a distancia menor a 45 se detiene
+	def detencion(self,msg):
+		#print("dentencion:",msg.z)
+		if (msg.z<45 and msg.z>0):
 			self.msg_control.v = 0
                         self.msg_control.omega = 0
 			self.count=0
-			#print("dentencion:",msg.z)
-
-		elif msg.z==0 or msg.z>44:		#if no detecta o esta lejos, aumenta el contador			
+			print("detect:")
+		if msg.z==0 or msg.z>45:
 			self.count=self.count+1
-			#print("counter:",self.count)				
-			if self.count>2:		#if el contador es mayor a 2, el duckiebot se mueve (hace lo que dice el joystick)
-				self.msg_control = self.msg_joy
-				#print("counter:",self.count)
-   
-			else:				#if el contador es menor a 2, el duckiebot se mantiene detenido (para evitar falsas no-detecciones)
+			if self.count>2:
+				self.msg_control= self.msg_joy
+				if self.count>200:
+					self.count=3
+				print("count:",self.count)
+			else:
 				self.msg_control.v = 0
-	                        self.msg_control.omega = 0
-				#print("safe")
+                        	self.msg_control.omega = 0
+				print("safe")
 		
-		#publica la velocidad que corresponda
+		
 		self.pubWheels.publish(self.msg_control)
 
 def main():
