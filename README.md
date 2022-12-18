@@ -1,11 +1,14 @@
 # Proyecto-Duckietown-Equipo7
-Curso: Módulo Interdiciplinario (Duckietown), CD2201-22 - Primavera 2022
+#### Curso: 
+Módulo Interdiciplinario (Duckietown), CD2201-22 - Primavera 2022
 
-Equipo 7: Alex Kri, Ignacio Sanhueza, Belfor Salazar
+#### Equipo 7: 
+Alex Kri, Ignacio Sanhueza, Belfor Salazar
 
-Proyecto: Semáforos para Duckietown
+#### Proyecto: 
+Semáforos para Duckietown
 
-Contenido del repositorio:
+#### Contenido del repositorio:
 
   -Código comentado del proyecto
 
