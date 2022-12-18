@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import rospy #importar ros para python
-from std_msgs.msg import String, Int32 # importar mensajes de ROS tipo String y tipo Int32
-from duckietown_msgs.msg import Twist2DStamped #
+from std_msgs.msg import String, Int32 #importar mensajes de ROS tipo String y tipo Int32
+from duckietown_msgs.msg import Twist2DStamped #importar mensajes de ROS tipo Twist2DStamped
 from geometry_msgs.msg import Twist, Point # importar mensajes de ROS tipo geometry / Twist, Point
 from sensor_msgs.msg import Image, Joy #importar mensajes a ROS tipo Image y Joy
 import cv2 #importar libreria opencv
-from cv_bridge import CvBridge # importar convertidor de formato de imagenes
+from cv_bridge import CvBridge #importar convertidor de formato de imagenes
 import numpy as np #importar libreria numpy
 
 
@@ -51,10 +51,10 @@ class Proyecto(object):
 		#crear mascara para detectar
 		
 	#	mask1 usa los limites 1 del color rojo
-		mask1 = cv2.inRange(image_out_hsv, lower_limit_1, upper_limit_1) 
-		kernel = np.ones((5,5),np.uint8)
-		mask1 = cv2.erode(mask1, kernel, iterations=1)
-		mask1 = cv2.dilate(mask1, kernel, iterations=1)
+		#mask1 = cv2.inRange(image_out_hsv, lower_limit_1, upper_limit_1) 
+		#kernel = np.ones((5,5),np.uint8)
+		#mask1 = cv2.erode(mask1, kernel, iterations=1)
+		#mask1 = cv2.dilate(mask1, kernel, iterations=1)
 		
 		#mask2 usa los limites 2 del color rojo
 		mask2 = cv2.inRange(image_out_hsv, lower_limit_2, upper_limit_2)
